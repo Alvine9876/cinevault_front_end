@@ -1,35 +1,60 @@
 import { useEffect, useState } from "react";
+import API from "../services/API";
+import MovieCard from "../components/Moviecard";
 
 function Movies() {
   const [movies, setMovies] = useState([]);
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState("");
 
   useEffect(() => {
-    setMovies([
-      { id: 1, title: "Inception", year: 2010 },
-      { id: 2, title: "Interstellar", year: 2014 },
-      { id: 3, title: "The Dark Knight", year: 2008 },
-    ]);
-  }, []);
+  API.get("/movies")
+    .then((res) => setMovies(res.data))
+    .catch((err) => console.error(err));
+}, []);
+
+  const filteredMovies = movies.filter((movie) => {
+    return (
+      movie.title.toLowerCase().includes(search.toLowerCase()) &&
+      (genre === "" || movie.genre === genre)
+    );
+  });
 
   return (
     <div className="bg-gray-900 text-white min-h-screen p-6">
       <h2 className="text-3xl font-bold mb-6 text-red-500">Movies</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {movies.map((movie) => (
-          <div
-            key={movie.id}
-            className="bg-gray-800 p-4 rounded-lg shadow-lg hover:scale-105 transition"
-          >
-            <h3 className="text-xl font-semibold">{movie.title}</h3>
-            <p className="text-gray-400">{movie.year}</p>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        
+        <input
+          type="text"
+          placeholder="Search movies..."
+          className="p-2 rounded bg-gray-800 text-white w-full"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-            <button className="mt-3 bg-red-500 px-3 py-1 rounded hover:bg-red-600">
-              View Details
-            </button>
-          </div>
-        ))}
+        <select
+          className="p-2 rounded bg-gray-800 text-white"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+        >
+          <option value="">All Genres</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Action">Action</option>
+          <option value="Drama">Drama</option>
+        </select>
       </div>
+
+      {movies.length === 0 ? (
+        <p>No movies available...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
